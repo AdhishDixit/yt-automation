@@ -565,6 +565,7 @@ class Database {
         audience TEXT NOT NULL,
         value_proposition TEXT,
         content_pillars TEXT NOT NULL,
+        story_themes TEXT,
         cadence_per_week INTEGER DEFAULT 1,
         videos_per_run INTEGER DEFAULT 1,
         default_format TEXT DEFAULT 'explainer',
@@ -698,7 +699,7 @@ class Database {
       `INSERT OR IGNORE INTO channel_profiles (
         id, channel_name, goal, target_audience, brand_voice, default_style,
         call_to_action, banned_topics, visual_style, timezone
-      ) VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         process.env.CHANNEL_NAME || 'My YouTube Channel',
         'Grow a trusted, useful YouTube channel',
@@ -1632,14 +1633,14 @@ class Database {
     const current = await this.getChannelStrategy() || {};
     await this.executeQuery(
       `INSERT INTO channel_strategies (
-        id, objective, audience, value_proposition, content_pillars, cadence_per_week,
+        id, objective, audience, value_proposition, content_pillars, story_themes, cadence_per_week,
         videos_per_run, default_format, default_length, success_metric, primary_kpi,
         target_value, target_window_days, monthly_budget, outcome_currency, constraints,
         status, created_at, updated_at
       ) VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now')), datetime('now'))
       ON CONFLICT(id) DO UPDATE SET
         objective = excluded.objective, audience = excluded.audience,
-        value_proposition = excluded.value_proposition, content_pillars = excluded.content_pillars,
+        value_proposition = excluded.value_proposition, content_pillars = excluded.content_pillars, story_themes = excluded.story_themes,
         cadence_per_week = excluded.cadence_per_week, videos_per_run = excluded.videos_per_run,
         default_format = excluded.default_format, default_length = excluded.default_length,
         success_metric = excluded.success_metric, primary_kpi = excluded.primary_kpi,
@@ -1652,6 +1653,7 @@ class Database {
         strategy.audience ?? current.audience ?? '',
         strategy.valueProposition ?? current.value_proposition ?? '',
         JSON.stringify(strategy.contentPillars ?? current.contentPillars ?? []),
+        JSON.stringify(strategy.storyThemes ?? current.storyThemes ?? []),
         strategy.cadencePerWeek ?? current.cadence_per_week ?? 1,
         strategy.videosPerRun ?? current.videos_per_run ?? 1,
         strategy.defaultFormat ?? current.default_format ?? 'explainer',
@@ -1673,7 +1675,8 @@ class Database {
   deserializeChannelStrategy(row) {
     return {
       ...row,
-      contentPillars: JSON.parse(row.content_pillars || '[]')
+      contentPillars: JSON.parse(row.content_pillars || '[]'),
+      storyThemes: JSON.parse(row.story_themes || '[]')
     };
   }
 

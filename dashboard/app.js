@@ -686,6 +686,7 @@ function renderOperator(strategy, runs, system) {
     audience: strategy.audience,
     valueProposition: strategy.value_proposition,
     contentPillars: (strategy.contentPillars || []).join(', '),
+    storyThemes: (strategy.storyThemes || []).join(', '),
     cadencePerWeek: strategy.cadence_per_week,
     videosPerRun: strategy.videos_per_run,
     defaultFormat: strategy.default_format,
@@ -934,7 +935,8 @@ function renderSceneEditor(item, canReview = true) {
           ${canReview ? `<div class="scene-actions">
             <button type="button" class="text-button" data-scene-move="up" ${disabled || index === 0 ? 'disabled' : ''}>↑ Earlier</button>
             <button type="button" class="text-button" data-scene-move="down" ${disabled || index === scenes.length - 1 ? 'disabled' : ''}>↓ Later</button>
-            <button type="button" class="text-button approve" data-scene-save ${disabled ? 'disabled' : ''}>Save scene</button>
+            <button type="button" class="text-button" data-scene-save ${disabled ? 'disabled' : ''}>Save scene</button>
+            <button type="button" class="text-button" data-scene-test ${disabled ? 'disabled' : ''}>Test voice & cinematic flow</button>
             <button type="button" class="text-button" data-scene-narration ${disabled ? 'disabled' : ''}>Regenerate narration only</button>
             <button type="button" class="text-button" data-scene-regenerate ${disabled ? 'disabled' : ''}>Regenerate scene</button>
             <label class="text-button upload-button ${disabled ? 'disabled' : ''}">Replace asset<input type="file" data-scene-upload accept="image/png,image/jpeg,image/webp,video/mp4" ${disabled ? 'disabled' : ''}></label>
@@ -1410,13 +1412,18 @@ document.addEventListener('click', async event => {
     return;
   }
 
-  const sceneButton = event.target.closest('[data-scene-save], [data-scene-narration], [data-scene-regenerate], [data-scene-lock], [data-scene-move]');
+  const sceneButton = event.target.closest('[data-scene-save], [data-scene-test], [data-scene-narration], [data-scene-regenerate], [data-scene-lock], [data-scene-move]');
   if (sceneButton) {
     const card = sceneButton.closest('[data-scene-card]');
     const productionId = $('#content-review-form')?.dataset.productionId;
     const sceneId = card?.dataset.sceneCard;
     if (!productionId || !sceneId) return;
     try {
+      if (sceneButton.matches('[data-scene-test]')) {
+        await api(`/api/content/${encodeURIComponent(productionId)}/scenes/${encodeURIComponent(sceneId)}/test-preview`, { method: 'POST', body: '{}' }).catch(() => {});
+        alert('Testing character voice and cinematic video flow for this scene. Output will be available in the logs.');
+        return;
+      }
       if (sceneButton.matches('[data-scene-lock]')) {
         await api(`/api/content/${encodeURIComponent(productionId)}/scenes/${encodeURIComponent(sceneId)}`, {
           method: 'PATCH', body: JSON.stringify({ locked: !card.classList.contains('locked') })
@@ -1666,6 +1673,7 @@ function strategyFormData(status = ui.state?.channelStrategy?.status || 'draft')
   return {
     ...values,
     contentPillars: values.contentPillars.split(',').map(value => value.trim()).filter(Boolean),
+    storyThemes: (values.storyThemes || '').split(',').map(value => value.trim()).filter(Boolean),
     cadencePerWeek: Number(values.cadencePerWeek),
     videosPerRun: Number(values.videosPerRun),
     targetValue: values.targetValue === '' ? null : Number(values.targetValue),

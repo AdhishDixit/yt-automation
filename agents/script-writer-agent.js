@@ -130,6 +130,8 @@ Pacing: ${template.pacing}
 Brand voice: ${strategy.brandVoice || 'clear, credible, and engaging'}
 Channel goal: ${strategy.channelGoal || 'help the viewer understand and act'}
 Channel value proposition: ${strategy.channelValueProposition || 'give the viewer practical value'}
+Story themes: ${strategy.storyThemes ? (Array.isArray(strategy.storyThemes) ? strategy.storyThemes.join(', ') : strategy.storyThemes) : 'none'}
+Cinematic instruction: This must create cinematic videos like an actual movie if a story theme is provided.
 Editorial rationale: ${strategy.planRationale || 'fit the selected topic and audience'}
 Channel constraints: ${strategy.channelConstraints || 'none beyond the factual-safety rules below'}
 Preferred call to action: ${strategy.callToAction || 'invite the viewer to subscribe'}

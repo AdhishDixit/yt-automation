@@ -322,6 +322,10 @@ class YouTubeAutomationAgent {
       throw new Error('Provide 1 to 8 content pillars, each 100 characters or less');
     }
 
+    const rawStoryThemes = body.storyThemes ?? current.storyThemes ?? [];
+    if (!Array.isArray(rawStoryThemes)) throw new Error('storyThemes must be an array');
+    const storyThemes = rawStoryThemes.map(value => String(value).trim()).filter(Boolean);
+
     const integer = (key, fallback, min, max) => {
       const value = Number(body[key] ?? fallback);
       if (!Number.isInteger(value) || value < min || value > max) {
@@ -358,6 +362,7 @@ class YouTubeAutomationAgent {
       audience,
       valueProposition: text('valueProposition', current.value_proposition, 1000),
       contentPillars,
+      storyThemes,
       cadencePerWeek: integer('cadencePerWeek', current.cadence_per_week || 1, 1, 7),
       videosPerRun: integer('videosPerRun', current.videos_per_run || 1, 1, 5),
       defaultFormat,
